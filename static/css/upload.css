@@ -1,0 +1,29 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6f9;
+}
+
+.upload-card {
+    width: 600px;
+    margin: auto;
+    margin-top: 60px;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, .2);
+}
+
+.upload-card h2 {
+    margin-bottom: 30px;
+    color: #007bff;
+}
+
+.btn {
+    height: 45px;
+}

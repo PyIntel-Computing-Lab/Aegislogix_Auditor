@@ -1,0 +1,30 @@
+body {
+    background: #f4f7fb;
+    font-family: Arial, sans-serif;
+}
+
+.report-icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.table {
+    vertical-align: middle;
+}
+
+.table th {
+    white-space: nowrap;
+}
+
+.report-icon {
+    color: #0d6efd;
+}

@@ -1,0 +1,118 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6f9;
+}
+
+
+/* Main Layout */
+
+.wrapper {
+    display: flex;
+}
+
+
+/* Sidebar */
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #0d1b2a;
+    color: white;
+    position: fixed;
+}
+
+.sidebar h3 {
+    border-bottom: 1px solid #1b3a57;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 15px 20px;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background: #007bff;
+}
+
+.sidebar i {
+    margin-right: 10px;
+}
+
+
+/* Main Content */
+
+.main {
+    margin-left: 250px;
+    width: 100%;
+}
+
+
+/* Navbar */
+
+.navbar {
+    height: 70px;
+}
+
+.navbar i {
+    font-size: 22px;
+    cursor: pointer;
+}
+
+
+/* Dashboard Cards */
+
+.dashboard-card {
+    padding: 20px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.dashboard-card h5 {
+    color: #555;
+}
+
+.dashboard-card h2 {
+    color: #007bff;
+    font-weight: bold;
+}
+
+
+/* Table */
+
+table {
+    margin-top: 15px;
+}
+
+th {
+    background: #007bff;
+    color: white;
+}
+
+
+/* Responsive */
+
+@media(max-width:768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .main {
+        margin-left: 0;
+    }
+    .wrapper {
+        flex-direction: column;
+    }
+}

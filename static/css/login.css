@@ -1,0 +1,102 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b1d3a;
+}
+
+.left-panel {
+    background: #081120;
+    color: white;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.logo {
+    font-size: 70px;
+    color: #00c6ff;
+    margin-bottom: 20px;
+}
+
+.brand h1 {
+    font-size: 45px;
+    margin-bottom: 10px;
+}
+
+.brand h4 {
+    color: #00c6ff;
+    margin-bottom: 15px;
+}
+
+.features {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.features i {
+    font-size: 30px;
+    color: #00c6ff;
+}
+
+.login-card {
+    width: 420px;
+    background: white;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.user-icon {
+    font-size: 50px;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.form-control {
+    height: 45px;
+}
+
+.input-group-text {
+    background: #007bff;
+    color: white;
+    border: none;
+}
+
+.login-btn {
+    background: #007bff;
+    color: white;
+    height: 45px;
+    border: none;
+}
+
+.login-btn:hover {
+    background: #0056b3;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+@media(max-width:992px) {
+    .left-panel {
+        display: none;
+    }
+    .login-card {
+        width: 90%;
+        margin: auto;
+    }
+}

@@ -1,0 +1,61 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #081120, #102c57);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.register-section {
+    min-height: 100vh;
+}
+
+.register-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 40px;
+    color: #fff;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, .4);
+}
+
+.logo {
+    font-size: 55px;
+    color: #0dcaf0;
+    margin-bottom: 15px;
+}
+
+.form-control {
+    background: rgba(255, 255, 255, .12);
+    border: none;
+    color: #fff;
+    height: 50px;
+}
+
+.form-control::placeholder {
+    color: #ddd;
+}
+
+.form-control:focus {
+    background: rgba(255, 255, 255, .15);
+    color: #fff;
+    box-shadow: none;
+}
+
+.btn-primary {
+    height: 50px;
+    border-radius: 30px;
+    font-weight: 600;
+}
+
+a {
+    color: #0dcaf0;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #fff;
+}

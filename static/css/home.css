@@ -1,0 +1,37 @@
+body {
+    background: #081120;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.hero {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-icon {
+    font-size: 220px;
+    color: #00c6ff;
+}
+
+.feature-card {
+    padding: 20px;
+    border: none;
+    border-radius: 15px;
+    transition: .3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+}
+
+.feature-icon {
+    font-size: 45px;
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+footer {
+    margin-top: 40px;
+}
