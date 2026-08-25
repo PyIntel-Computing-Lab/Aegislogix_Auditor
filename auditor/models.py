@@ -56,22 +56,16 @@ class Threat(models.Model):
         return self.threat_name
 
 
-# Report Model
+# ===========================
+# REPORT MODEL
+# ===========================
 class Report(models.Model):
-
-    log = models.ForeignKey(
-        LogFile,
-        on_delete=models.CASCADE,
-        related_name="reports"
-    )
 
     report_name = models.CharField(max_length=200)
 
     description = models.TextField()
 
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.report_name

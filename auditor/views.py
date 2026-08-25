@@ -493,25 +493,19 @@ def threat(request):
 
     return render(request, "threat.html", context)
 
-
 # ===========================
 # REPORTS
 # ===========================
 def reports(request):
 
-    # User must be logged in
     if "user_id" not in request.session:
         return redirect("login")
 
-    # Get all reports
-    report_list = Report.objects.all().order_by("-created_at")
+    report_list = Report.objects.all().order_by("created_at")
 
-    context = {
-        "reports": report_list,
-        "total_reports": report_list.count(),
-    }
-
-    return render(request, "reports.html", context)
+    return render(request, "reports.html", {
+        "reports": report_list
+    })
 # ===========================
 # PROFILE
 # ===========================
