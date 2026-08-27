@@ -3,22 +3,19 @@ from datetime import date
 from .models import User, LogFile, Threat, Report
 
 
-# ===========================
+# ============================================================
 # HOME
-# ===========================
+# ============================================================
 def home(request):
     return render(request, "home.html")
 
 
-# ===========================
+# ============================================================
 # REGISTER
-# ===========================
+# ============================================================
 def register(request):
 
     if request.method == "POST":
-
-        print("===== REGISTER =====")
-        print(request.POST)
 
         full_name = request.POST.get("full_name")
         username = request.POST.get("username")
@@ -27,28 +24,25 @@ def register(request):
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
-        print("Full Name:", full_name)
-        print("Username:", username)
-        print("Email:", email)
-        print("Phone:", phone)
-        print("Password:", password)
-        print("Confirm Password:", confirm_password)
-
+        # Password confirmation
         if password != confirm_password:
             return render(request, "register.html", {
                 "error": "Passwords do not match."
             })
 
+        # Email validation
         if User.objects.filter(email=email).exists():
             return render(request, "register.html", {
                 "error": "Email already exists."
             })
 
+        # Username validation
         if User.objects.filter(username=username).exists():
             return render(request, "register.html", {
                 "error": "Username already exists."
             })
 
+        # Create user
         User.objects.create(
             full_name=full_name,
             username=username,
@@ -62,9 +56,9 @@ def register(request):
     return render(request, "register.html")
 
 
-# ===========================
+# ============================================================
 # LOGIN
-# ===========================
+# ============================================================
 def login(request):
 
     if request.method == "POST":
@@ -73,7 +67,11 @@ def login(request):
         password = request.POST.get("password")
 
         try:
-            user = User.objects.get(email=email, password=password)
+
+            user = User.objects.get(
+                email=email,
+                password=password
+            )
 
             request.session["user_id"] = user.id
             request.session["username"] = user.username
@@ -81,6 +79,7 @@ def login(request):
             return redirect("dashboard")
 
         except User.DoesNotExist:
+
             return render(request, "login.html", {
                 "error": "Invalid Email or Password"
             })
@@ -88,113 +87,35 @@ def login(request):
     return render(request, "login.html")
 
 
-# ===========================
+# ============================================================
 # DASHBOARD
-# ===========================
+# ============================================================
 def dashboard(request):
 
-    # Check login
     if "user_id" not in request.session:
         return redirect("login")
 
-    # Get currently logged-in user
-    user_id = request.session["user_id"]
-
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        request.session.flush()
-        return redirect("login")
-
-    # --------------------------------
-    # USER-SPECIFIC LOGS
-    # --------------------------------
-
-    user_logs = LogFile.objects.filter(
-        user=user
-    ).order_by("-uploaded_at")
-
-    # --------------------------------
-    # USER'S THREATS
-    # --------------------------------
-
-    user_threats = Threat.objects.filter(
-        log__user=user
-    ).order_by("-detected_on")
-
-    # --------------------------------
-    # REPORTS
-    # --------------------------------
-
-    # Your current Report model does not
-    # have a direct user field.
-    # Therefore reports are counted globally.
-    total_reports = Report.objects.count()
-
-    # --------------------------------
-    # DASHBOARD COUNTS
-    # --------------------------------
-
-    total_logs = user_logs.count()
-
-    total_threats = user_threats.count()
-
-    # --------------------------------
-    # RECENT LOGS
-    # --------------------------------
-
-    recent_logs = user_logs[:5]
-
-    # --------------------------------
-    # RECENT THREATS
-    # --------------------------------
-
-    recent_threats = user_threats[:5]
-
-    # --------------------------------
-    # SECURITY STATUS
-    # --------------------------------
-
-    if total_threats == 0:
-
-        security_status = "Secure"
-        security_message = "No threats detected."
-
-    elif total_threats <= 3:
-
-        security_status = "Warning"
-        security_message = "Some suspicious activity detected."
-
-    else:
-
-        security_status = "Critical"
-        security_message = "Multiple security threats detected."
-
-    # --------------------------------
-    # CONTEXT
-    # --------------------------------
-
     context = {
 
-        "username": user.username,
+        "total_logs":
+            LogFile.objects.count(),
 
-        "user": user,
+        "total_users":
+            User.objects.count(),
 
-        "total_logs": total_logs,
+        "total_threats":
+            Threat.objects.count(),
 
-        "total_users": User.objects.count(),
+        "total_reports":
+            Report.objects.count(),
 
-        "total_threats": total_threats,
+        "recent_logs":
+            LogFile.objects.order_by(
+                "-uploaded_at"
+            )[:5],
 
-        "total_reports": total_reports,
-
-        "recent_logs": recent_logs,
-
-        "recent_threats": recent_threats,
-
-        "security_status": security_status,
-
-        "security_message": security_message,
+        "username":
+            request.session.get("username"),
     }
 
     return render(
@@ -202,45 +123,72 @@ def dashboard(request):
         "dashboard.html",
         context
     )
-# ===========================
-# UPLOAD LOGS
-# ===========================
+
+
+# ============================================================
+# UPLOAD LOGS + ADVANCED THREAT DETECTION
+# ============================================================
 def upload_logs(request):
 
-    # User must be logged in
+    # --------------------------------------------------------
+    # LOGIN CHECK
+    # --------------------------------------------------------
     if "user_id" not in request.session:
         return redirect("login")
 
-    # Get logged-in user
     try:
-        user = User.objects.get(id=request.session["user_id"])
+
+        user = User.objects.get(
+            id=request.session["user_id"]
+        )
+
     except User.DoesNotExist:
+
         request.session.flush()
+
         return redirect("login")
 
-    # ===========================
-    # POST - UPLOAD FILE
-    # ===========================
+    # ========================================================
+    # POST REQUEST
+    # ========================================================
     if request.method == "POST":
 
+        # ----------------------------------------------------
+        # GET FORM DATA
+        # ----------------------------------------------------
         log_file = request.FILES.get("log_file")
-        log_type = request.POST.get("log_type")
-        description = request.POST.get("description", "").strip()
 
-        # ---------------------------
-        # Validate file
-        # ---------------------------
+        log_type = request.POST.get(
+            "log_type"
+        )
+
+        description = request.POST.get(
+            "description",
+            ""
+        ).strip()
+
+        # ----------------------------------------------------
+        # VALIDATE FILE
+        # ----------------------------------------------------
         if not log_file:
-            return render(request, "upload_logs.html", {
-                "logs": LogFile.objects.filter(
-                    user=user
-                ).order_by("-uploaded_at"),
-                "error": "Please select a log file."
-            })
 
-        # ---------------------------
-        # Validate log type
-        # ---------------------------
+            logs = LogFile.objects.filter(
+                user=user
+            ).order_by("-uploaded_at")
+
+            return render(
+                request,
+                "upload_logs.html",
+                {
+                    "logs": logs,
+                    "error":
+                        "Please select a log file."
+                }
+            )
+
+        # ----------------------------------------------------
+        # VALIDATE LOG TYPE
+        # ----------------------------------------------------
         allowed_types = [
             "Apache",
             "Nginx",
@@ -249,27 +197,43 @@ def upload_logs(request):
         ]
 
         if log_type not in allowed_types:
-            return render(request, "upload_logs.html", {
-                "logs": LogFile.objects.filter(
-                    user=user
-                ).order_by("-uploaded_at"),
-                "error": "Please select a valid log type."
-            })
 
-        # ---------------------------
-        # Validate description
-        # ---------------------------
+            logs = LogFile.objects.filter(
+                user=user
+            ).order_by("-uploaded_at")
+
+            return render(
+                request,
+                "upload_logs.html",
+                {
+                    "logs": logs,
+                    "error":
+                        "Please select a valid log type."
+                }
+            )
+
+        # ----------------------------------------------------
+        # VALIDATE DESCRIPTION
+        # ----------------------------------------------------
         if not description:
-            return render(request, "upload_logs.html", {
-                "logs": LogFile.objects.filter(
-                    user=user
-                ).order_by("-uploaded_at"),
-                "error": "Please enter a description."
-            })
 
-        # ===========================
-        # READ FILE CONTENT
-        # ===========================
+            logs = LogFile.objects.filter(
+                user=user
+            ).order_by("-uploaded_at")
+
+            return render(
+                request,
+                "upload_logs.html",
+                {
+                    "logs": logs,
+                    "error":
+                        "Please enter a description."
+                }
+            )
+
+        # ====================================================
+        # READ LOG FILE
+        # ====================================================
 
         try:
 
@@ -284,14 +248,18 @@ def upload_logs(request):
 
             log_text = ""
 
-        # Also include description in analysis
+        # ----------------------------------------------------
+        # COMBINE LOG CONTENT + DESCRIPTION
+        # ----------------------------------------------------
         analysis_text = (
-            log_text + " " + description.lower()
+            log_text
+            + " "
+            + description.lower()
         )
 
-        # ===========================
-        # CREATE LOG RECORD
-        # ===========================
+        # ====================================================
+        # SAVE LOG FILE
+        # ====================================================
 
         uploaded_log = LogFile.objects.create(
             user=user,
@@ -300,64 +268,206 @@ def upload_logs(request):
             description=description
         )
 
-        # ===========================
-        # THREAT RULES
-        # ===========================
+        # ====================================================
+        # ADVANCED THREAT DETECTION RULES
+        # ====================================================
 
         threat_rules = [
 
+            # ------------------------------------------------
+            # SQL INJECTION
+            # ------------------------------------------------
             {
-                "keywords": ["sql injection", "sql-injection"],
+                "keywords": [
+                    "sql injection",
+                    "sql-injection",
+                    "union select",
+                    "' or 1=1",
+                    "or 1=1",
+                    "drop table",
+                    "select * from"
+                ],
                 "name": "SQL Injection",
                 "severity": "High"
             },
 
+            # ------------------------------------------------
+            # UNAUTHORIZED ACCESS
+            # ------------------------------------------------
             {
-                "keywords": ["unauthorized access"],
+                "keywords": [
+                    "unauthorized access",
+                    "unauthorized user",
+                    "unauthorized",
+                    "access denied",
+                    "permission denied"
+                ],
                 "name": "Unauthorized Access",
                 "severity": "High"
             },
 
+            # ------------------------------------------------
+            # MALWARE
+            # ------------------------------------------------
             {
-                "keywords": ["unauthorized"],
-                "name": "Unauthorized Access",
-                "severity": "High"
-            },
-
-            {
-                "keywords": ["malware"],
+                "keywords": [
+                    "malware",
+                    "malicious software",
+                    "malicious program"
+                ],
                 "name": "Malware Detected",
                 "severity": "High"
             },
 
+            # ------------------------------------------------
+            # VIRUS
+            # ------------------------------------------------
             {
-                "keywords": ["virus"],
-                "name": "Virus Found",
+                "keywords": [
+                    "virus",
+                    "virus detected",
+                    "infected file",
+                    "infected system"
+                ],
+                "name": "Virus Detected",
                 "severity": "High"
             },
 
+            # ------------------------------------------------
+            # CYBER ATTACK
+            # ------------------------------------------------
             {
-                "keywords": ["cyber attack", "attack detected"],
+                "keywords": [
+                    "cyber attack",
+                    "attack detected",
+                    "security attack"
+                ],
                 "name": "Cyber Attack",
                 "severity": "High"
             },
 
+            # ------------------------------------------------
+            # FAILED LOGIN
+            # ------------------------------------------------
             {
-                "keywords": ["failed login"],
+                "keywords": [
+                    "failed login",
+                    "login failed",
+                    "authentication failed",
+                    "invalid login",
+                    "login failure",
+                    "authentication error"
+                ],
                 "name": "Failed Login Attempt",
                 "severity": "Medium"
             },
 
+            # ------------------------------------------------
+            # BRUTE FORCE
+            # ------------------------------------------------
             {
-                "keywords": ["xss", "cross site scripting"],
-                "name": "Cross Site Scripting",
+                "keywords": [
+                    "brute force",
+                    "multiple failed login",
+                    "multiple login failures",
+                    "too many login attempts",
+                    "repeated login failure",
+                    "repeated failed login"
+                ],
+                "name": "Brute Force Attack",
+                "severity": "High"
+            },
+
+            # ------------------------------------------------
+            # CROSS SITE SCRIPTING
+            # ------------------------------------------------
+            {
+                "keywords": [
+                    "<script>",
+                    "xss",
+                    "cross site scripting",
+                    "javascript injection"
+                ],
+                "name": "Cross-Site Scripting (XSS)",
                 "severity": "Medium"
+            },
+
+            # ------------------------------------------------
+            # COMMAND INJECTION
+            # ------------------------------------------------
+            {
+                "keywords": [
+                    "command injection",
+                    "cmd injection",
+                    "shell injection",
+                    ";whoami",
+                    ";cat /etc/passwd",
+                    "|whoami"
+                ],
+                "name": "Command Injection",
+                "severity": "High"
+            },
+
+            # ------------------------------------------------
+            # PATH TRAVERSAL
+            # ------------------------------------------------
+            {
+                "keywords": [
+                    "../",
+                    "..\\",
+                    "directory traversal",
+                    "path traversal"
+                ],
+                "name": "Path Traversal",
+                "severity": "High"
+            },
+
+            # ------------------------------------------------
+            # SUSPICIOUS HTTP REQUEST
+            # ------------------------------------------------
+            {
+                "keywords": [
+                    "suspicious request",
+                    "malicious request",
+                    "invalid http request",
+                    "suspicious http"
+                ],
+                "name": "Suspicious HTTP Request",
+                "severity": "Medium"
+            },
+
+            # ------------------------------------------------
+            # PORT SCANNING
+            # ------------------------------------------------
+            {
+                "keywords": [
+                    "port scan",
+                    "port scanning",
+                    "network scan",
+                    "nmap scan"
+                ],
+                "name": "Port Scanning Activity",
+                "severity": "Medium"
+            },
+
+            # ------------------------------------------------
+            # PRIVILEGE ESCALATION
+            # ------------------------------------------------
+            {
+                "keywords": [
+                    "privilege escalation",
+                    "root access",
+                    "administrator privilege",
+                    "admin privilege"
+                ],
+                "name": "Privilege Escalation",
+                "severity": "High"
             }
         ]
 
-        # ===========================
-        # DETECT MULTIPLE THREATS
-        # ===========================
+        # ====================================================
+        # DETECT THREATS
+        # ====================================================
 
         detected_threats = []
 
@@ -368,6 +478,7 @@ def upload_logs(request):
             for keyword in rule["keywords"]:
 
                 if keyword in analysis_text:
+
                     found = True
                     break
 
@@ -380,372 +491,375 @@ def upload_logs(request):
                         rule["name"]
                     )
 
-                    # Create Threat
+                    # ----------------------------------------
+                    # SAVE THREAT
+                    # ----------------------------------------
+
                     Threat.objects.create(
+
                         log=uploaded_log,
-                        threat_name=rule["name"],
-                        severity=rule["severity"],
-                        status="Detected",
-                        detected_on=date.today()
+
+                        threat_name=
+                            rule["name"],
+
+                        severity=
+                            rule["severity"],
+
+                        status=
+                            "Detected",
+
+                        detected_on=
+                            date.today()
                     )
 
-                    # Create Report
-                    Report.objects.create(
-                        report_name=f"{rule['name']} Report",
-                        description=(
-                            f"AegisLogix detected "
-                            f"{rule['name']} in the uploaded "
-                            f"log file '{uploaded_log.log_file.name}'. "
-                            f"Severity: {rule['severity']}. "
-                            f"Log type: {log_type}. "
-                            f"Description: {description}"
-                        )
-                    )
+        # ====================================================
+        # CREATE SECURITY REPORT
+        # ====================================================
 
-        # ===========================
+        if detected_threats:
+
+            threat_names = ", ".join(
+                detected_threats
+            )
+
+            Report.objects.create(
+
+                report_name=(
+                    "Security Report - "
+                    f"{uploaded_log.log_file.name}"
+                ),
+
+                description=(
+
+                    "AegisLogix detected "
+                    f"{len(detected_threats)} "
+                    "security threat(s) "
+                    "in the uploaded log. "
+
+                    f"Threats detected: "
+                    f"{threat_names}. "
+
+                    f"Log file: "
+                    f"{uploaded_log.log_file.name}. "
+
+                    f"Log type: "
+                    f"{log_type}. "
+
+                    f"Uploaded by: "
+                    f"{user.username}. "
+
+                    f"Description: "
+                    f"{description}"
+                )
+            )
+
+        # ====================================================
         # SUCCESS MESSAGE
-        # ===========================
+        # ====================================================
 
         if detected_threats:
 
             threat_message = (
-                f"{len(detected_threats)} threat(s) detected: "
-                + ", ".join(detected_threats)
+
+                "Security analysis completed. "
+
+                f"{len(detected_threats)} "
+                "threat(s) detected: "
+
+                + ", ".join(
+                    detected_threats
+                )
             )
 
         else:
 
             threat_message = (
-                "Log uploaded successfully. "
-                "No known threats were detected."
+
+                "Log uploaded and analyzed "
+                "successfully. "
+
+                "No known security threats "
+                "were detected."
             )
 
-        # ===========================
-        # SHOW UPDATED LOG LIST
-        # ===========================
+        # ====================================================
+        # GET UPDATED LOGS
+        # ====================================================
 
         logs = LogFile.objects.filter(
             user=user
         ).order_by("-uploaded_at")
 
-        return render(request, "upload_logs.html", {
-            "logs": logs,
-            "success": threat_message
-        })
+        return render(
+            request,
+            "upload_logs.html",
+            {
+                "logs": logs,
+                "success":
+                    threat_message
+            }
+        )
 
-    # ===========================
-    # GET - UPLOAD PAGE
-    # ===========================
+    # ========================================================
+    # GET REQUEST
+    # ========================================================
 
     logs = LogFile.objects.filter(
         user=user
     ).order_by("-uploaded_at")
 
-    return render(request, "upload_logs.html", {
-        "logs": logs
-    })
+    return render(
+        request,
+        "upload_logs.html",
+        {
+            "logs": logs
+        }
+    )
 
 
-# ===========================
+# ============================================================
 # THREAT DETECTION
-# ===========================
-
+# ============================================================
 def threat(request):
 
     if "user_id" not in request.session:
         return redirect("login")
 
+    # -----------------------------------------
+    # GET FILTER VALUES
+    # -----------------------------------------
+    search = request.GET.get(
+        "search",
+        ""
+    ).strip()
+
+    severity = request.GET.get(
+        "severity",
+        ""
+    ).strip()
+
+    log_type = request.GET.get(
+        "log_type",
+        ""
+    ).strip()
+
+    status = request.GET.get(
+        "status",
+        ""
+    ).strip()
+
+    # -----------------------------------------
+    # GET ALL THREATS
+    # -----------------------------------------
     threats = Threat.objects.select_related(
         "log"
-    ).order_by("-detected_on", "-id")
+    ).all().order_by(
+        "-detected_on",
+        "-id"
+    )
 
+    # -----------------------------------------
+    # SEARCH
+    # -----------------------------------------
+    if search:
+
+        threats = threats.filter(
+            threat_name__icontains=search
+        )
+
+    # -----------------------------------------
+    # SEVERITY FILTER
+    # -----------------------------------------
+    if severity:
+
+        threats = threats.filter(
+            severity=severity
+        )
+
+    # -----------------------------------------
+    # LOG TYPE FILTER
+    # -----------------------------------------
+    if log_type:
+
+        threats = threats.filter(
+            log__log_type=log_type
+        )
+
+    # -----------------------------------------
+    # STATUS FILTER
+    # -----------------------------------------
+    if status:
+
+        threats = threats.filter(
+            status=status
+        )
+
+    # -----------------------------------------
+    # STATISTICS
+    # -----------------------------------------
     total_threats = threats.count()
 
-    high_threats = threats.filter(
+    high_count = threats.filter(
         severity="High"
     ).count()
 
-    medium_threats = threats.filter(
+    medium_count = threats.filter(
         severity="Medium"
     ).count()
 
-    low_threats = threats.filter(
+    low_count = threats.filter(
         severity="Low"
     ).count()
 
-    detected_threats = threats.filter(
+    detected_count = threats.filter(
         status="Detected"
     ).count()
 
-    resolved_threats = threats.filter(
+    resolved_count = threats.filter(
         status="Resolved"
     ).count()
 
-    context = {
-        "threats": threats,
-        "total_threats": total_threats,
-        "high_threats": high_threats,
-        "medium_threats": medium_threats,
-        "low_threats": low_threats,
-        "detected_threats": detected_threats,
-        "resolved_threats": resolved_threats,
-    }
+    # -----------------------------------------
+    # RENDER PAGE
+    # -----------------------------------------
+    return render(
+        request,
+        "threat.html",
+        {
+            "threats": threats,
 
-    return render(request, "threat.html", context)
+            "search": search,
+            "severity": severity,
+            "log_type": log_type,
+            "status": status,
 
-# ===========================
+            "total_threats": total_threats,
+            "high_count": high_count,
+            "medium_count": medium_count,
+            "low_count": low_count,
+
+            "detected_count": detected_count,
+            "resolved_count": resolved_count,
+        }
+    )
+
+# ============================================================
 # REPORTS
-# ===========================
+# ============================================================
 def reports(request):
 
     if "user_id" not in request.session:
         return redirect("login")
 
-    report_list = Report.objects.all().order_by("created_at")
+    # Ascending ID order
+    # Report 1 → Report 2 → Report 3
+    reports = Report.objects.all().order_by("id")
 
-    return render(request, "reports.html", {
-        "reports": report_list
-    })
-# ===========================
+    return render(
+        request,
+        "reports.html",
+        {
+            "reports": reports
+        }
+    )
+
+
+# ============================================================
 # PROFILE
-# ===========================
+# ============================================================
 def profile(request):
 
-    # Check login
     if "user_id" not in request.session:
         return redirect("login")
 
-    try:
-        user = User.objects.get(
-            id=request.session["user_id"]
-        )
-    except User.DoesNotExist:
-        request.session.flush()
-        return redirect("login")
+    user = User.objects.get(
+        id=request.session["user_id"]
+    )
 
-    return render(request, "profile.html", {
-        "user": user
-    })
+    return render(
+        request,
+        "profile.html",
+        {
+            "user": user
+        }
+    )
 
 
-# ===========================
-# SETTINGS / EDIT PROFILE
-# ===========================
+# ============================================================
+# SETTINGS
+# ============================================================
 def settings(request):
 
-    # Check login
     if "user_id" not in request.session:
         return redirect("login")
 
-    try:
-        user = User.objects.get(
-            id=request.session["user_id"]
-        )
-    except User.DoesNotExist:
-        request.session.flush()
-        return redirect("login")
+    user = User.objects.get(
+        id=request.session["user_id"]
+    )
 
-    # ===========================
-    # UPDATE PROFILE
-    # ===========================
     if request.method == "POST":
 
-        full_name = request.POST.get("full_name", "").strip()
-        username = request.POST.get("username", "").strip()
-        email = request.POST.get("email", "").strip()
-        phone = request.POST.get("phone", "").strip()
-        new_password = request.POST.get("password", "").strip()
-        confirm_password = request.POST.get("confirm_password", "").strip()
+        user.full_name = request.POST.get(
+            "full_name"
+        )
 
-        # ---------------------------
-        # Basic validation
-        # ---------------------------
+        user.username = request.POST.get(
+            "username"
+        )
 
-        if not full_name:
-            return render(request, "settings.html", {
-                "user": user,
-                "error": "Full Name cannot be empty."
-            })
+        user.email = request.POST.get(
+            "email"
+        )
 
-        if not username:
-            return render(request, "settings.html", {
-                "user": user,
-                "error": "Username cannot be empty."
-            })
+        user.phone = request.POST.get(
+            "phone"
+        )
 
-        if not email:
-            return render(request, "settings.html", {
-                "user": user,
-                "error": "Email cannot be empty."
-            })
-
-        if not phone:
-            return render(request, "settings.html", {
-                "user": user,
-                "error": "Phone Number cannot be empty."
-            })
-
-        # ---------------------------
-        # Check duplicate username
-        # ---------------------------
-
-        if User.objects.filter(
-            username=username
-        ).exclude(id=user.id).exists():
-
-            return render(request, "settings.html", {
-                "user": user,
-                "error": "Username already exists."
-            })
-
-        # ---------------------------
-        # Check duplicate email
-        # ---------------------------
-
-        if User.objects.filter(
-            email=email
-        ).exclude(id=user.id).exists():
-
-            return render(request, "settings.html", {
-                "user": user,
-                "error": "Email already exists."
-            })
-
-        # ---------------------------
-        # Password validation
-        # ---------------------------
+        new_password = request.POST.get(
+            "password"
+        )
 
         if new_password:
 
-            if new_password != confirm_password:
-
-                return render(request, "settings.html", {
-                    "user": user,
-                    "error": "New password and confirm password do not match."
-                })
-
-            if len(new_password) < 6:
-
-                return render(request, "settings.html", {
-                    "user": user,
-                    "error": "Password must contain at least 6 characters."
-                })
-
-        # ---------------------------
-        # Save updated information
-        # ---------------------------
-
-        user.full_name = full_name
-        user.username = username
-        user.email = email
-        user.phone = phone
-
-        if new_password:
             user.password = new_password
 
         user.save()
 
-        # Update session username
-        request.session["username"] = user.username
+        return render(
+            request,
+            "settings.html",
+            {
+                "user": user,
+                "success":
+                    "Profile Updated Successfully!"
+            }
+        )
 
-        return render(request, "settings.html", {
-            "user": user,
-            "success": "Profile updated successfully!"
-        })
-
-    # GET request
-    return render(request, "settings.html", {
-        "user": user
-    })
+    return render(
+        request,
+        "settings.html",
+        {
+            "user": user
+        }
+    )
 
 
-# ===========================
+# ============================================================
 # FORGOT PASSWORD
-# ===========================
+# ============================================================
 def forgot_password(request):
 
-    if request.method == "POST":
-
-        email = request.POST.get("email", "").strip()
-        new_password = request.POST.get("password", "").strip()
-        confirm_password = request.POST.get(
-            "confirm_password", ""
-        ).strip()
-
-        # ---------------------------
-        # Check email
-        # ---------------------------
-
-        if not email:
-
-            return render(request, "forgot_password.html", {
-                "error": "Please enter your email address."
-            })
-
-        # ---------------------------
-        # Check whether email exists
-        # ---------------------------
-
-        try:
-
-            user = User.objects.get(email=email)
-
-        except User.DoesNotExist:
-
-            return render(request, "forgot_password.html", {
-                "error": "No account found with this email address."
-            })
-
-        # ---------------------------
-        # Check password
-        # ---------------------------
-
-        if not new_password:
-
-            return render(request, "forgot_password.html", {
-                "error": "Please enter a new password.",
-                "email": email
-            })
-
-        # ---------------------------
-        # Check password length
-        # ---------------------------
-
-        if len(new_password) < 6:
-
-            return render(request, "forgot_password.html", {
-                "error": "Password must contain at least 6 characters.",
-                "email": email
-            })
-
-        # ---------------------------
-        # Confirm password
-        # ---------------------------
-
-        if new_password != confirm_password:
-
-            return render(request, "forgot_password.html", {
-                "error": "New password and confirm password do not match.",
-                "email": email
-            })
-
-        # ---------------------------
-        # Update password
-        # ---------------------------
-
-        user.password = new_password
-        user.save()
-
-        return render(request, "forgot_password.html", {
-            "success": "Password updated successfully! You can now login.",
-        })
-
-    return render(request, "forgot_password.html")
+    return render(
+        request,
+        "forgot_password.html"
+    )
 
 
-# ===========================
+# ============================================================
 # LOGOUT
-# ===========================
+# ============================================================
 def logout(request):
+
     request.session.flush()
+
     return redirect("login")
