@@ -1,47 +1,113 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
 
-    path("", views.home, name="home"),
+    # ========================================================
+    # HOME
+    # ========================================================
+    path(
+        "",
+        views.home,
+        name="home"
+    ),
 
-    path("register/",
-         views.register,
-         name="register"),
 
-    path("login/",
-         views.login,
-         name="login"),
+    # ========================================================
+    # AUTHENTICATION
+    # ========================================================
+    path(
+        "register/",
+        views.register,
+        name="register"
+    ),
 
-    path("forgot-password/",
-         views.forgot_password,
-         name="forgot_password"),
+    path(
+        "login/",
+        views.login,
+        name="login"
+    ),
 
-    path("dashboard/",
-         views.dashboard,
-         name="dashboard"),
+    path(
+        "logout/",
+        views.logout,
+        name="logout"
+    ),
 
-    path("upload_logs/",
-         views.upload_logs,
-         name="upload_logs"),
+    path(
+        "forgot-password/",
+        views.forgot_password,
+        name="forgot_password"
+    ),
 
-    path("threat/",
-         views.threat,
-         name="threat"),
 
-    path("reports/",
-         views.reports,
-         name="reports"),
+    # ========================================================
+    # DASHBOARD
+    # ========================================================
+    path(
+        "dashboard/",
+        views.dashboard,
+        name="dashboard"
+    ),
 
-    path("profile/",
-         views.profile,
-         name="profile"),
 
-    path("settings/",
-         views.settings,
-         name="settings"),
+    # ========================================================
+    # LOG UPLOAD
+    # ========================================================
+    path(
+        "upload-logs/",
+        views.upload_logs,
+        name="upload_logs"
+    ),
 
-    path("logout/",
-         views.logout,
-         name="logout"),
+
+    # ========================================================
+    # THREAT DETECTION
+    # ========================================================
+    path(
+        "threat/",
+        views.threat,
+        name="threat"
+    ),
+
+
+    # ========================================================
+    # THREAT DETAILS
+    # ========================================================
+    path(
+        "threat/<int:threat_id>/",
+        views.threat_details,
+        name="threat_details"
+    ),
+
+
+    # ========================================================
+    # SECURITY REPORTS
+    # ========================================================
+    path(
+        "reports/",
+        views.reports,
+        name="reports"
+    ),
+
+
+    # ========================================================
+    # PROFILE
+    # ========================================================
+    path(
+        "profile/",
+        views.profile,
+        name="profile"
+    ),
+
+
+    # ========================================================
+    # SETTINGS
+    # ========================================================
+    path(
+        "settings/",
+        views.settings,
+        name="settings"
+    ),
 ]

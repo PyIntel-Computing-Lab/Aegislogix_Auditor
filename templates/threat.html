@@ -11,11 +11,13 @@
 
     <title>AegisLogix | Threat Detection</title>
 
+
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
 
     <style>
         * {
@@ -42,6 +44,7 @@
             color: white;
             padding: 25px 15px;
             z-index: 1000;
+            overflow-y: auto;
         }
         
         .brand {
@@ -105,9 +108,10 @@
         .page-title p {
             margin-top: 6px;
             color: #64748b;
+            margin-bottom: 0;
         }
         /* =========================================
-           CARDS
+           STATISTICS CARDS
         ========================================= */
         
         .stat-card {
@@ -117,6 +121,12 @@
             padding: 22px;
             box-shadow: 0 4px 15px rgba(15, 23, 42, 0.07);
             height: 100%;
+            transition: 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
         }
         
         .stat-icon {
@@ -176,17 +186,26 @@
         .filter-title {
             font-weight: 600;
             margin-bottom: 18px;
+            font-size: 17px;
         }
         
         .form-label {
             font-weight: 600;
             font-size: 14px;
+            margin-bottom: 7px;
         }
         
         .form-control,
         .form-select {
             min-height: 44px;
             border-radius: 8px;
+            border: 1px solid #dbe2ea;
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.12);
         }
         
         .filter-btn {
@@ -216,11 +235,20 @@
         .table-header {
             padding: 20px 22px;
             border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .table-header h5 {
             margin: 0;
             font-weight: 700;
+        }
+        
+        .table-header p {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 13px;
         }
         
         .table-responsive {
@@ -229,6 +257,7 @@
         
         .table {
             margin: 0;
+            min-width: 1100px;
         }
         
         .table thead th {
@@ -238,33 +267,64 @@
             padding: 15px;
             white-space: nowrap;
             font-size: 13px;
+            font-weight: 600;
         }
         
         .table tbody td {
             padding: 15px;
             vertical-align: middle;
             white-space: nowrap;
+            border-bottom: 1px solid #edf0f4;
+        }
+        
+        .table tbody tr {
+            transition: 0.2s;
         }
         
         .table tbody tr:hover {
             background: #f8fafc;
         }
         
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        /* =========================================
+           THREAT ID
+        ========================================= */
+        
         .threat-id {
             font-weight: 700;
             color: #64748b;
+            font-size: 14px;
         }
+        /* =========================================
+           THREAT NAME
+        ========================================= */
         
         .threat-name {
             font-weight: 600;
+            color: #1e293b;
         }
+        
+        .threat-name i {
+            margin-right: 7px;
+            color: #dc2626;
+        }
+        /* =========================================
+           LOG FILE
+        ========================================= */
         
         .log-file {
             color: #475569;
             font-size: 13px;
         }
+        
+        .log-file i {
+            margin-right: 6px;
+            color: #64748b;
+        }
         /* =========================================
-           BADGES
+           SEVERITY BADGES
         ========================================= */
         
         .severity-high {
@@ -274,6 +334,9 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .severity-medium {
@@ -283,6 +346,9 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .severity-low {
@@ -292,7 +358,13 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
+        /* =========================================
+           STATUS BADGES
+        ========================================= */
         
         .status-detected {
             background: #fee2e2;
@@ -301,6 +373,9 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .status-resolved {
@@ -310,6 +385,35 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        /* =========================================
+           VIEW DETAILS BUTTON
+        ========================================= */
+        
+        .view-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            background: #eef4ff;
+            color: #2563eb;
+            border: 1px solid #dbeafe;
+            transition: 0.2s ease;
+        }
+        
+        .view-btn:hover {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            transform: translateY(-1px);
         }
         /* =========================================
            EMPTY STATE
@@ -330,6 +434,11 @@
         .empty-state h5 {
             color: #334155;
             font-weight: 600;
+            margin-bottom: 7px;
+        }
+        
+        .empty-state p {
+            margin-bottom: 0;
         }
         /* =========================================
            MOBILE
@@ -340,6 +449,11 @@
                 position: relative;
                 width: 100%;
                 height: auto;
+                min-height: auto;
+                padding: 20px 15px;
+            }
+            .brand {
+                margin-bottom: 20px;
             }
             .main-content {
                 margin-left: 0;
@@ -347,6 +461,24 @@
             }
             .page-header {
                 display: block;
+            }
+            .page-title {
+                margin-bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+            }
+            .stat-card {
+                padding: 18px;
+            }
+            .filter-card {
+                padding: 18px;
+            }
+            .table-header {
+                padding: 18px;
             }
         }
     </style>
@@ -429,7 +561,9 @@
     <div class="main-content">
 
 
-        <!-- PAGE HEADER -->
+        <!-- =================================================
+         PAGE HEADER
+    ================================================= -->
 
         <div class="page-header">
 
@@ -441,8 +575,11 @@
 
                 </h2>
 
+
                 <p>
+
                     Monitor and analyze security threats detected in uploaded log files.
+
                 </p>
 
             </div>
@@ -458,7 +595,7 @@
         <div class="row g-4">
 
 
-            <!-- TOTAL -->
+            <!-- TOTAL THREATS -->
 
             <div class="col-lg-3 col-md-6">
 
@@ -470,12 +607,18 @@
 
                     </div>
 
+
                     <div class="stat-title">
+
                         Total Threats
+
                     </div>
 
+
                     <div class="stat-number">
+
                         {{ total_threats }}
+
                     </div>
 
                 </div>
@@ -483,7 +626,8 @@
             </div>
 
 
-            <!-- HIGH -->
+
+            <!-- HIGH SEVERITY -->
 
             <div class="col-lg-3 col-md-6">
 
@@ -495,12 +639,18 @@
 
                     </div>
 
+
                     <div class="stat-title">
+
                         High Severity
+
                     </div>
 
+
                     <div class="stat-number">
+
                         {{ high_count }}
+
                     </div>
 
                 </div>
@@ -508,7 +658,8 @@
             </div>
 
 
-            <!-- MEDIUM -->
+
+            <!-- MEDIUM SEVERITY -->
 
             <div class="col-lg-3 col-md-6">
 
@@ -520,12 +671,18 @@
 
                     </div>
 
+
                     <div class="stat-title">
+
                         Medium Severity
+
                     </div>
 
+
                     <div class="stat-number">
+
                         {{ medium_count }}
+
                     </div>
 
                 </div>
@@ -533,7 +690,8 @@
             </div>
 
 
-            <!-- DETECTED -->
+
+            <!-- ACTIVE DETECTED -->
 
             <div class="col-lg-3 col-md-6">
 
@@ -545,12 +703,18 @@
 
                     </div>
 
+
                     <div class="stat-title">
+
                         Active Detected
+
                     </div>
 
+
                     <div class="stat-number">
+
                         {{ detected_count }}
+
                     </div>
 
                 </div>
@@ -566,6 +730,7 @@
     ================================================= -->
 
         <div class="filter-card">
+
 
             <div class="filter-title">
 
@@ -589,9 +754,11 @@
 
                     </label>
 
+
                         <input type="text" name="search" class="form-control" placeholder="Example: SQL Injection" value="{{ search }}">
 
                     </div>
+
 
 
                     <!-- SEVERITY -->
@@ -604,11 +771,15 @@
 
                     </label>
 
+
                         <select name="severity" class="form-select">
 
                         <option value="">
+
                             All Severity
+
                         </option>
+
 
                         <option
                             value="High"
@@ -616,8 +787,11 @@
                                 selected
                             {% endif %}
                         >
+
                             High
+
                         </option>
+
 
                         <option
                             value="Medium"
@@ -625,8 +799,11 @@
                                 selected
                             {% endif %}
                         >
+
                             Medium
+
                         </option>
+
 
                         <option
                             value="Low"
@@ -634,12 +811,15 @@
                                 selected
                             {% endif %}
                         >
+
                             Low
+
                         </option>
 
                     </select>
 
                     </div>
+
 
 
                     <!-- LOG TYPE -->
@@ -652,11 +832,15 @@
 
                     </label>
 
+
                         <select name="log_type" class="form-select">
 
                         <option value="">
+
                             All Types
+
                         </option>
+
 
                         <option
                             value="Apache"
@@ -664,8 +848,11 @@
                                 selected
                             {% endif %}
                         >
+
                             Apache
+
                         </option>
+
 
                         <option
                             value="Nginx"
@@ -673,8 +860,11 @@
                                 selected
                             {% endif %}
                         >
+
                             Nginx
+
                         </option>
+
 
                         <option
                             value="System"
@@ -682,8 +872,11 @@
                                 selected
                             {% endif %}
                         >
+
                             System
+
                         </option>
+
 
                         <option
                             value="Application"
@@ -691,12 +884,15 @@
                                 selected
                             {% endif %}
                         >
+
                             Application
+
                         </option>
 
                     </select>
 
                     </div>
+
 
 
                     <!-- STATUS -->
@@ -709,11 +905,15 @@
 
                     </label>
 
+
                         <select name="status" class="form-select">
 
                         <option value="">
+
                             All Status
+
                         </option>
+
 
                         <option
                             value="Detected"
@@ -721,8 +921,11 @@
                                 selected
                             {% endif %}
                         >
+
                             Detected
+
                         </option>
+
 
                         <option
                             value="Resolved"
@@ -730,12 +933,15 @@
                                 selected
                             {% endif %}
                         >
+
                             Resolved
+
                         </option>
 
                     </select>
 
                     </div>
+
 
 
                     <!-- FILTER BUTTON -->
@@ -755,7 +961,8 @@
                 </div>
 
 
-                <!-- RESET -->
+
+                <!-- RESET BUTTON -->
 
                 <div class="mt-3">
 
@@ -780,16 +987,32 @@
         <div class="table-card">
 
 
+            <!-- TABLE HEADER -->
+
             <div class="table-header">
 
-                <h5>
+                <div>
 
-                    <i class="fa-solid fa-list"></i> Detected Security Threats
+                    <h5>
 
-                </h5>
+                        <i class="fa-solid fa-list"></i> Detected Security Threats
+
+                    </h5>
+
+
+                    <p>
+
+                        Review detected threats and inspect individual threat details.
+
+                    </p>
+
+                </div>
 
             </div>
 
+
+
+            <!-- TABLE -->
 
             <div class="table-responsive">
 
@@ -804,33 +1027,45 @@
                                 ID
                             </th>
 
+
                             <th>
                                 Threat
                             </th>
+
 
                             <th>
                                 Severity
                             </th>
 
+
                             <th>
                                 Status
                             </th>
+
 
                             <th>
                                 Log File
                             </th>
 
+
                             <th>
                                 Log Type
                             </th>
+
 
                             <th>
                                 Detected On
                             </th>
 
+
+                            <th>
+                                Action
+                            </th>
+
                         </tr>
 
                     </thead>
+
 
 
                     <tbody>
@@ -841,7 +1076,9 @@
                         <tr>
 
 
-                            <!-- ID -->
+                            <!-- =================================
+                             ID
+                        ================================== -->
 
                             <td>
 
@@ -854,11 +1091,16 @@
                             </td>
 
 
-                            <!-- THREAT -->
+
+                            <!-- =================================
+                             THREAT
+                        ================================== -->
 
                             <td>
 
                                 <span class="threat-name">
+
+                                <i class="fa-solid fa-shield-virus"></i>
 
                                 {{ item.threat_name }}
 
@@ -867,7 +1109,10 @@
                             </td>
 
 
-                            <!-- SEVERITY -->
+
+                            <!-- =================================
+                             SEVERITY
+                        ================================== -->
 
                             <td>
 
@@ -900,7 +1145,10 @@
                             </td>
 
 
-                            <!-- STATUS -->
+
+                            <!-- =================================
+                             STATUS
+                        ================================== -->
 
                             <td>
 
@@ -925,7 +1173,10 @@
                             </td>
 
 
-                            <!-- LOG FILE -->
+
+                            <!-- =================================
+                             LOG FILE
+                        ================================== -->
 
                             <td>
 
@@ -940,7 +1191,10 @@
                             </td>
 
 
-                            <!-- LOG TYPE -->
+
+                            <!-- =================================
+                             LOG TYPE
+                        ================================== -->
 
                             <td>
 
@@ -949,11 +1203,30 @@
                             </td>
 
 
-                            <!-- DATE -->
+
+                            <!-- =================================
+                             DETECTED DATE
+                        ================================== -->
 
                             <td>
 
                                 {{ item.detected_on }}
+
+                            </td>
+
+
+
+                            <!-- =================================
+                             VIEW DETAILS
+                        ================================== -->
+
+                            <td>
+
+                                <a href="{% url 'threat_details' item.id %}" class="view-btn">
+
+                                    <i class="fa-solid fa-eye"></i> View
+
+                                </a>
 
                             </td>
 
@@ -964,20 +1237,30 @@
                         {% empty %}
 
 
+                        <!-- =================================
+                         EMPTY STATE
+                    ================================== -->
+
                         <tr>
 
-                            <td colspan="7">
+                            <td colspan="8">
 
                                 <div class="empty-state">
 
                                     <i class="fa-solid fa-shield-check"></i>
 
+
                                     <h5>
+
                                         No Threats Found
+
                                     </h5>
 
+
                                     <p>
+
                                         No security threats match your current search or filters.
+
                                     </p>
 
                                 </div>
@@ -1002,7 +1285,10 @@
     </div>
 
 
-    <!-- Bootstrap JS -->
+
+    <!-- =====================================================
+     BOOTSTRAP JS
+===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
     </script>
