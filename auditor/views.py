@@ -3,18 +3,19 @@ from datetime import date
 from .models import User, LogFile, Threat, Report
 
 
-# ============================================================
+# =========================================================
 # HOME
-# ============================================================
+# =========================================================
+
 def home(request):
     return render(request, "home.html")
 
 
-# ============================================================
+# =========================================================
 # REGISTER
-# ============================================================
-def register(request):
+# =========================================================
 
+def register(request):
     if request.method == "POST":
 
         full_name = request.POST.get("full_name")
@@ -24,40 +25,27 @@ def register(request):
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
-        # Password confirmation
         if password != confirm_password:
-
             return render(
                 request,
                 "register.html",
-                {
-                    "error": "Passwords do not match."
-                }
+                {"error": "Passwords do not match."}
             )
 
-        # Check email
         if User.objects.filter(email=email).exists():
-
             return render(
                 request,
                 "register.html",
-                {
-                    "error": "Email already exists."
-                }
+                {"error": "Email already exists."}
             )
 
-        # Check username
         if User.objects.filter(username=username).exists():
-
             return render(
                 request,
                 "register.html",
-                {
-                    "error": "Username already exists."
-                }
+                {"error": "Username already exists."}
             )
 
-        # Create user
         User.objects.create(
             full_name=full_name,
             username=username,
@@ -71,9 +59,10 @@ def register(request):
     return render(request, "register.html")
 
 
-# ============================================================
+# =========================================================
 # LOGIN
-# ============================================================
+# =========================================================
+
 def login(request):
 
     if request.method == "POST":
@@ -106,9 +95,10 @@ def login(request):
     return render(request, "login.html")
 
 
-# ============================================================
+# =========================================================
 # DASHBOARD
-# ============================================================
+# =========================================================
+
 def dashboard(request):
 
     if "user_id" not in request.session:
@@ -142,15 +132,15 @@ def dashboard(request):
     )
 
 
-# ============================================================
-# UPLOAD LOGS + THREAT DETECTION
-# ============================================================
+# =========================================================
+# UPLOAD LOGS + THREAT ANALYSIS
+# =========================================================
+
 def upload_logs(request):
 
     if "user_id" not in request.session:
         return redirect("login")
 
-    # Get logged-in user
     try:
 
         user = User.objects.get(
@@ -160,12 +150,12 @@ def upload_logs(request):
     except User.DoesNotExist:
 
         request.session.flush()
-
         return redirect("login")
 
-    # ========================================================
+    # -----------------------------------------------------
     # POST REQUEST
-    # ========================================================
+    # -----------------------------------------------------
+
     if request.method == "POST":
 
         log_file = request.FILES.get("log_file")
@@ -177,9 +167,10 @@ def upload_logs(request):
             ""
         ).strip()
 
-        # ----------------------------------------------------
+        # -------------------------------------------------
         # FILE VALIDATION
-        # ----------------------------------------------------
+        # -------------------------------------------------
+
         if not log_file:
 
             logs = LogFile.objects.filter(
@@ -191,14 +182,14 @@ def upload_logs(request):
                 "upload_logs.html",
                 {
                     "logs": logs,
-                    "error":
-                        "Please select a log file."
+                    "error": "Please select a log file."
                 }
             )
 
-        # ----------------------------------------------------
+        # -------------------------------------------------
         # LOG TYPE VALIDATION
-        # ----------------------------------------------------
+        # -------------------------------------------------
+
         allowed_types = [
             "Apache",
             "Nginx",
@@ -217,14 +208,14 @@ def upload_logs(request):
                 "upload_logs.html",
                 {
                     "logs": logs,
-                    "error":
-                        "Please select a valid log type."
+                    "error": "Please select a valid log type."
                 }
             )
 
-        # ----------------------------------------------------
+        # -------------------------------------------------
         # DESCRIPTION VALIDATION
-        # ----------------------------------------------------
+        # -------------------------------------------------
+
         if not description:
 
             logs = LogFile.objects.filter(
@@ -236,14 +227,14 @@ def upload_logs(request):
                 "upload_logs.html",
                 {
                     "logs": logs,
-                    "error":
-                        "Please enter a description."
+                    "error": "Please enter a description."
                 }
             )
 
-        # ----------------------------------------------------
+        # -------------------------------------------------
         # READ LOG FILE
-        # ----------------------------------------------------
+        # -------------------------------------------------
+
         try:
 
             file_content = log_file.read()
@@ -257,16 +248,16 @@ def upload_logs(request):
 
             log_text = ""
 
-        # Combine file content and description
         analysis_text = (
             log_text
             + " "
             + description.lower()
         )
 
-        # ----------------------------------------------------
+        # -------------------------------------------------
         # SAVE LOG FILE
-        # ----------------------------------------------------
+        # -------------------------------------------------
+
         uploaded_log = LogFile.objects.create(
 
             user=user,
@@ -278,9 +269,10 @@ def upload_logs(request):
             description=description
         )
 
-        # ====================================================
+        # -------------------------------------------------
         # THREAT DETECTION RULES
-        # ====================================================
+        # -------------------------------------------------
+
         threat_rules = [
 
             {
@@ -435,9 +427,10 @@ def upload_logs(request):
             },
         ]
 
-        # ====================================================
+        # -------------------------------------------------
         # DETECT THREATS
-        # ====================================================
+        # -------------------------------------------------
+
         detected_threats = []
 
         for rule in threat_rules:
@@ -449,7 +442,6 @@ def upload_logs(request):
                 if keyword in analysis_text:
 
                     found = True
-
                     break
 
             if found and rule["name"] not in detected_threats:
@@ -471,9 +463,10 @@ def upload_logs(request):
                     detected_on=date.today()
                 )
 
-        # ====================================================
+        # -------------------------------------------------
         # CREATE SECURITY REPORT
-        # ====================================================
+        # -------------------------------------------------
+
         if detected_threats:
 
             threat_names = ", ".join(
@@ -501,7 +494,8 @@ def upload_logs(request):
                     f"Log file: "
                     f"{uploaded_log.log_file.name}. "
 
-                    f"Log type: {log_type}. "
+                    f"Log type: "
+                    f"{log_type}. "
 
                     f"Uploaded by: "
                     f"{user.username}. "
@@ -511,9 +505,10 @@ def upload_logs(request):
                 )
             )
 
-        # ====================================================
-        # RESULT MESSAGE
-        # ====================================================
+        # -------------------------------------------------
+        # SUCCESS MESSAGE
+        # -------------------------------------------------
+
         if detected_threats:
 
             threat_message = (
@@ -532,14 +527,11 @@ def upload_logs(request):
 
             threat_message = (
 
-                "Log uploaded and analyzed "
-                "successfully. "
+                "Log uploaded and analyzed successfully. "
 
-                "No known security threats "
-                "were detected."
+                "No known security threats were detected."
             )
 
-        # Get user's logs
         logs = LogFile.objects.filter(
             user=user
         ).order_by("-uploaded_at")
@@ -553,9 +545,10 @@ def upload_logs(request):
             }
         )
 
-    # ========================================================
-    # GET REQUEST
-    # ========================================================
+    # -----------------------------------------------------
+    # NORMAL GET REQUEST
+    # -----------------------------------------------------
+
     logs = LogFile.objects.filter(
         user=user
     ).order_by("-uploaded_at")
@@ -569,74 +562,83 @@ def upload_logs(request):
     )
 
 
-# ============================================================
+# =========================================================
 # THREAT DETECTION
-# ============================================================
+# =========================================================
+
 def threat(request):
 
     if "user_id" not in request.session:
         return redirect("login")
 
-    # Search
     search = request.GET.get(
         "search",
         ""
     ).strip()
 
-    # Severity
     severity = request.GET.get(
         "severity",
         ""
     ).strip()
 
-    # Log type
     log_type = request.GET.get(
         "log_type",
         ""
     ).strip()
 
-    # Status
     status = request.GET.get(
         "status",
         ""
     ).strip()
 
-    # Normal ascending ID order
     threats = Threat.objects.select_related(
         "log"
     ).all().order_by("id")
 
-    # Search filter
+    # -----------------------------------------------------
+    # SEARCH
+    # -----------------------------------------------------
+
     if search:
 
         threats = threats.filter(
             threat_name__icontains=search
         )
 
-    # Severity filter
+    # -----------------------------------------------------
+    # SEVERITY FILTER
+    # -----------------------------------------------------
+
     if severity:
 
         threats = threats.filter(
             severity=severity
         )
 
-    # Log type filter
+    # -----------------------------------------------------
+    # LOG TYPE FILTER
+    # -----------------------------------------------------
+
     if log_type:
 
         threats = threats.filter(
             log__log_type=log_type
         )
 
-    # Status filter
+    # -----------------------------------------------------
+    # STATUS FILTER
+    # -----------------------------------------------------
+
     if status:
 
         threats = threats.filter(
             status=status
         )
 
-    # ========================================================
+    # -----------------------------------------------------
     # STATISTICS
-    # ========================================================
+    # -----------------------------------------------------
+
     total_threats = threats.count()
 
     high_count = threats.filter(
@@ -659,28 +661,24 @@ def threat(request):
         status="Resolved"
     ).count()
 
-    # ========================================================
-    # TEMPLATE
-    # ========================================================
+    # -----------------------------------------------------
+    # RENDER
+    # -----------------------------------------------------
+
     return render(
         request,
         "threat.html",
         {
 
-            "threats":
-                threats,
+            "threats": threats,
 
-            "search":
-                search,
+            "search": search,
 
-            "severity":
-                severity,
+            "severity": severity,
 
-            "log_type":
-                log_type,
+            "log_type": log_type,
 
-            "status":
-                status,
+            "status": status,
 
             "total_threats":
                 total_threats,
@@ -703,21 +701,15 @@ def threat(request):
     )
 
 
-# ============================================================
+# =========================================================
 # THREAT DETAILS
-# ============================================================
+# =========================================================
+
 def threat_details(request, threat_id):
 
-    # --------------------------------------------------------
-    # LOGIN CHECK
-    # --------------------------------------------------------
     if "user_id" not in request.session:
-
         return redirect("login")
 
-    # --------------------------------------------------------
-    # GET THREAT
-    # --------------------------------------------------------
     try:
 
         threat = Threat.objects.select_related(
@@ -738,123 +730,97 @@ def threat_details(request, threat_id):
             }
         )
 
-    # --------------------------------------------------------
-    # RELATED LOG
-    # --------------------------------------------------------
     log = threat.log
 
-    # --------------------------------------------------------
-    # UPLOADED BY
-    # --------------------------------------------------------
     uploaded_by = log.user.username
 
-    # --------------------------------------------------------
+    # -----------------------------------------------------
     # RECOMMENDED ACTIONS
-    # --------------------------------------------------------
+    # -----------------------------------------------------
+
     recommendations = {
 
         "SQL Injection":
-
             "Investigate the source IP address, "
-            "review the affected request, validate "
-            "database inputs, and use parameterized "
-            "queries.",
+            "review the affected request, "
+            "validate database inputs, and "
+            "use parameterized queries.",
 
         "Malware Detected":
-
-            "Isolate the affected system, scan the "
-            "server with security tools, and investigate "
-            "the source of the malware.",
+            "Isolate the affected system, "
+            "scan the server with security tools, "
+            "and investigate the source of the malware.",
 
         "Virus Detected":
-
-            "Isolate the affected system, perform a "
-            "complete security scan, and remove the "
-            "infected files.",
+            "Isolate the affected system, "
+            "perform a complete security scan, "
+            "and remove the infected files.",
 
         "Unauthorized Access":
-
-            "Review authentication logs, verify the "
-            "user activity, and immediately secure "
-            "unauthorized accounts.",
+            "Review authentication logs, "
+            "verify the user activity, and "
+            "immediately secure unauthorized accounts.",
 
         "Failed Login Attempt":
-
-            "Review repeated login attempts and "
-            "investigate the source IP address.",
+            "Review repeated login attempts "
+            "and investigate the source IP address.",
 
         "Brute Force Attack":
-
-            "Block or rate-limit the suspicious source "
-            "and review authentication activity.",
+            "Block or rate-limit the suspicious "
+            "source and review authentication activity.",
 
         "Cross-Site Scripting (XSS)":
-
-            "Review the affected request and apply "
-            "proper input validation and output encoding.",
+            "Review the affected request and "
+            "apply proper input validation "
+            "and output encoding.",
 
         "Command Injection":
-
-            "Investigate the affected server and "
-            "validate all user-supplied commands.",
+            "Investigate the affected server "
+            "and validate all user-supplied commands.",
 
         "Path Traversal":
-
-            "Review the affected request and restrict "
-            "file-system access to authorized paths.",
+            "Review the affected request and "
+            "restrict file-system access to authorized paths.",
 
         "Port Scanning Activity":
-
-            "Investigate the source IP and review "
-            "network activity for additional suspicious "
-            "behavior.",
+            "Investigate the source IP and "
+            "review network activity for additional "
+            "suspicious behavior.",
 
         "Privilege Escalation":
-
-            "Review administrator activity and verify "
-            "whether unauthorized privilege changes "
-            "occurred.",
+            "Review administrator activity and "
+            "verify whether unauthorized privilege "
+            "changes occurred.",
 
         "Cyber Attack":
-
             "Immediately investigate the affected "
             "system and review related security logs.",
 
         "Suspicious HTTP Request":
-
-            "Review the request source and investigate "
-            "related HTTP activity."
+            "Review the request source and "
+            "investigate related HTTP activity."
     }
 
     recommended_action = recommendations.get(
 
         threat.threat_name,
 
-        "Investigate the related log activity and "
-        "review the source of the suspicious event."
+        "Investigate the related log activity "
+        "and review the source of the suspicious event."
     )
 
-    # --------------------------------------------------------
-    # CONTEXT
-    # --------------------------------------------------------
     context = {
 
-        "threat":
-            threat,
+        "threat": threat,
 
-        "log":
-            log,
+        "log": log,
 
-        "uploaded_by":
-            uploaded_by,
+        "uploaded_by": uploaded_by,
 
         "recommended_action":
             recommended_action
     }
 
-    # --------------------------------------------------------
-    # RENDER
-    # --------------------------------------------------------
     return render(
         request,
         "threat_details.html",
@@ -862,15 +828,73 @@ def threat_details(request, threat_id):
     )
 
 
-# ============================================================
-# SECURITY REPORTS
-# ============================================================
+# =========================================================
+# RESOLVE THREAT
+# =========================================================
+
+def resolve_threat(request, threat_id):
+
+    # -----------------------------------------------------
+    # LOGIN CHECK
+    # -----------------------------------------------------
+
+    if "user_id" not in request.session:
+        return redirect("login")
+
+    # -----------------------------------------------------
+    # ONLY POST REQUEST ALLOWED
+    # -----------------------------------------------------
+
+    if request.method != "POST":
+
+        return redirect(
+            "threat_details",
+            threat_id=threat_id
+        )
+
+    # -----------------------------------------------------
+    # FIND THREAT
+    # -----------------------------------------------------
+
+    try:
+
+        threat = Threat.objects.get(
+            id=threat_id
+        )
+
+    except Threat.DoesNotExist:
+
+        return redirect("threat")
+
+    # -----------------------------------------------------
+    # CHANGE STATUS
+    # -----------------------------------------------------
+
+    threat.status = "Resolved"
+
+    threat.save(
+        update_fields=["status"]
+    )
+
+    # -----------------------------------------------------
+    # RETURN TO DETAILS PAGE
+    # -----------------------------------------------------
+
+    return redirect(
+        "threat_details",
+        threat_id=threat_id
+    )
+
+
+# =========================================================
+# REPORTS
+# =========================================================
+
 def reports(request):
 
     if "user_id" not in request.session:
         return redirect("login")
 
-    # Ascending report ID
     reports = Report.objects.all().order_by("id")
 
     return render(
@@ -882,9 +906,10 @@ def reports(request):
     )
 
 
-# ============================================================
+# =========================================================
 # PROFILE
-# ============================================================
+# =========================================================
+
 def profile(request):
 
     if "user_id" not in request.session:
@@ -903,9 +928,10 @@ def profile(request):
     )
 
 
-# ============================================================
+# =========================================================
 # SETTINGS
-# ============================================================
+# =========================================================
+
 def settings(request):
 
     if "user_id" not in request.session:
@@ -962,9 +988,10 @@ def settings(request):
     )
 
 
-# ============================================================
+# =========================================================
 # FORGOT PASSWORD
-# ============================================================
+# =========================================================
+
 def forgot_password(request):
 
     return render(
@@ -973,9 +1000,10 @@ def forgot_password(request):
     )
 
 
-# ============================================================
+# =========================================================
 # LOGOUT
-# ============================================================
+# =========================================================
+
 def logout(request):
 
     request.session.flush()
