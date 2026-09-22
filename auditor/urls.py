@@ -102,6 +102,11 @@ urlpatterns = [
         name="reports"
     ),
 
+path(
+    "reports/<int:report_id>/download/",
+    views.download_report,
+    name="download_report"
+),
     # -----------------------------------------------------
     # PROFILE
     # -----------------------------------------------------

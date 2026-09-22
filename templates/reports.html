@@ -26,16 +26,12 @@
 <body>
 
 
-    <!-- =====================================================
-     MAIN WRAPPER
-===================================================== -->
-
     <div class="reports-wrapper">
 
 
-        <!-- =================================================
+        <!-- =====================================================
          TOP NAVIGATION
-    ================================================== -->
+    ====================================================== -->
 
         <header class="topbar">
 
@@ -74,9 +70,9 @@
 
 
 
-        <!-- =================================================
+        <!-- =====================================================
          PAGE HEADER
-    ================================================== -->
+    ====================================================== -->
 
         <section class="page-heading">
 
@@ -100,14 +96,14 @@
 
 
 
-        <!-- =================================================
+        <!-- =====================================================
          SUMMARY CARDS
-    ================================================== -->
+    ====================================================== -->
 
         <section class="summary-grid">
 
 
-            <!-- TOTAL -->
+            <!-- TOTAL REPORTS -->
 
             <div class="summary-card">
 
@@ -124,7 +120,7 @@
                     <h2>{{ reports|length }}</h2>
 
                     <small>
-                    Generated reports
+                    Generated security reports
                 </small>
 
                 </div>
@@ -133,7 +129,7 @@
 
 
 
-            <!-- HIGH -->
+            <!-- SECURITY ANALYSIS -->
 
             <div class="summary-card">
 
@@ -145,12 +141,12 @@
 
                 <div>
 
-                    <span>Security Reports</span>
+                    <span>Security Analysis</span>
 
-                    <h2>{{ reports|length }}</h2>
+                    <h2>Available</h2>
 
                     <small>
-                    Threat analysis available
+                    Threat analysis recorded
                 </small>
 
                 </div>
@@ -159,7 +155,7 @@
 
 
 
-            <!-- ANALYSIS -->
+            <!-- AUDIT -->
 
             <div class="summary-card">
 
@@ -176,7 +172,7 @@
                     <h2>Active</h2>
 
                     <small>
-                    Automated analysis
+                    Automated log analysis
                 </small>
 
                 </div>
@@ -185,7 +181,7 @@
 
 
 
-            <!-- SYSTEM -->
+            <!-- PLATFORM -->
 
             <div class="summary-card">
 
@@ -197,9 +193,9 @@
 
                 <div>
 
-                    <span>System Status</span>
+                    <span>Platform</span>
 
-                    <h2>Secure</h2>
+                    <h2>Active</h2>
 
                     <small>
                     AegisLogix monitoring
@@ -213,9 +209,9 @@
 
 
 
-        <!-- =================================================
+        <!-- =====================================================
          REPORTS PANEL
-    ================================================== -->
+    ====================================================== -->
 
         <section class="reports-panel">
 
@@ -254,7 +250,7 @@
 
 
             <!-- =================================================
-             TABLE
+             REPORT TABLE
         ================================================== -->
 
             <div class="table-wrapper">
@@ -281,6 +277,10 @@
                                 Created
                             </th>
 
+                            <th>
+                                Status
+                            </th>
+
                             <th class="action-column">
                                 Action
                             </th>
@@ -299,7 +299,7 @@
                         <tr>
 
 
-                            <!-- ID -->
+                            <!-- REPORT ID -->
 
                             <td>
 
@@ -313,7 +313,7 @@
 
 
 
-                            <!-- REPORT -->
+                            <!-- REPORT NAME -->
 
                             <td>
 
@@ -348,7 +348,7 @@
 
 
 
-                            <!-- DESCRIPTION -->
+                            <!-- SECURITY ANALYSIS -->
 
                             <td>
 
@@ -362,7 +362,7 @@
 
 
 
-                            <!-- DATE -->
+                            <!-- CREATED -->
 
                             <td>
 
@@ -392,6 +392,22 @@
 
 
 
+                            <!-- STATUS -->
+
+                            <td>
+
+                                <span class="status-badge">
+
+                                <i class="fa-solid fa-circle"></i>
+
+                                Generated
+
+                            </span>
+
+                            </td>
+
+
+
                             <!-- ACTION -->
 
                             <td>
@@ -412,7 +428,7 @@
 
 
                         <!-- =================================================
-                         REPORT MODAL
+                         REPORT DETAILS MODAL
                     ================================================== -->
 
                         <div class="modal fade" id="reportModal{{ report.id }}" tabindex="-1" aria-hidden="true">
@@ -431,7 +447,9 @@
                                         <div>
 
                                             <span class="modal-label">
+
                                             AEGISLOGIX SECURITY REPORT
+
                                         </span>
 
                                             <h4>
@@ -444,6 +462,7 @@
 
 
                                         <button type="button" class="btn-close" data-bs-dismiss="modal">
+
                                     </button>
 
                                     </div>
@@ -454,6 +473,8 @@
 
                                     <div class="modal-body">
 
+
+                                        <!-- REPORT META -->
 
                                         <div class="report-meta">
 
@@ -478,7 +499,9 @@
                                             </span>
 
                                                 <strong>
+
                                                 {{ report.created_at|date:"d M Y, h:i A" }}
+
                                             </strong>
 
                                             </div>
@@ -504,6 +527,80 @@
                                         </div>
 
 
+
+                                        <!-- REPORT INFORMATION -->
+
+                                        <div class="analysis-section">
+
+                                            <h5>
+
+                                                <i class="fa-solid fa-circle-info"></i> Report Information
+
+                                            </h5>
+
+
+                                            <div class="report-info-grid">
+
+
+                                                <div class="info-box">
+
+                                                    <span>
+                                                    Report Type
+                                                </span>
+
+                                                    <strong>
+                                                    Security Audit Report
+                                                </strong>
+
+                                                </div>
+
+
+                                                <div class="info-box">
+
+                                                    <span>
+                                                    Analysis Type
+                                                </span>
+
+                                                    <strong>
+                                                    Automated Log Analysis
+                                                </strong>
+
+                                                </div>
+
+
+                                                <div class="info-box">
+
+                                                    <span>
+                                                    Report Status
+                                                </span>
+
+                                                    <strong>
+                                                    Generated
+                                                </strong>
+
+                                                </div>
+
+
+                                                <div class="info-box">
+
+                                                    <span>
+                                                    Platform
+                                                </span>
+
+                                                    <strong>
+                                                    AegisLogix
+                                                </strong>
+
+                                                </div>
+
+
+                                            </div>
+
+                                        </div>
+
+
+
+                                        <!-- SECURITY ANALYSIS -->
 
                                         <div class="analysis-section">
 
@@ -531,11 +628,20 @@
 
                                     <div class="modal-footer">
 
+                                        <a href="{% url 'download_report' report.id %}" class="download-pdf-button">
+
+                                            <i class="fa-solid fa-file-pdf"></i> Download PDF
+
+                                        </a>
+
+
                                         <button type="button" class="close-modal" data-bs-dismiss="modal">
 
-                                        Close Report
+        <i class="fa-solid fa-xmark"></i>
 
-                                    </button>
+        Close Report
+
+    </button>
 
                                     </div>
 
@@ -551,14 +657,15 @@
 
 
                         <!-- =================================================
-                         NO REPORTS
+                         EMPTY REPORT STATE
                     ================================================== -->
 
                         <tr>
 
-                            <td colspan="5">
+                            <td colspan="6">
 
                                 <div class="empty-reports">
+
 
                                     <div class="empty-icon">
 
@@ -585,6 +692,7 @@
 
                                     </a>
 
+
                                 </div>
 
                             </td>
@@ -605,9 +713,9 @@
 
 
 
-        <!-- =================================================
+        <!-- =====================================================
          FOOTER
-    ================================================== -->
+    ====================================================== -->
 
         <footer class="footer">
 

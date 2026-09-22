@@ -1,5 +1,22 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from datetime import date
+from io import BytesIO
+
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    HRFlowable
+)
+
 from .models import User, LogFile, Threat, Report
 
 
@@ -904,6 +921,367 @@ def reports(request):
             "reports": reports
         }
     )
+
+# =========================================================
+# DOWNLOAD SECURITY REPORT PDF
+# =========================================================
+
+def download_report(request, report_id):
+
+    # -----------------------------------------------------
+    # LOGIN CHECK
+    # -----------------------------------------------------
+
+    if "user_id" not in request.session:
+        return redirect("login")
+
+    # -----------------------------------------------------
+    # FIND REPORT
+    # -----------------------------------------------------
+
+    try:
+        report = Report.objects.get(id=report_id)
+
+    except Report.DoesNotExist:
+        return redirect("reports")
+
+    # -----------------------------------------------------
+    # CREATE PDF RESPONSE
+    # -----------------------------------------------------
+
+    response = HttpResponse(
+        content_type="application/pdf"
+    )
+
+    response[
+        "Content-Disposition"
+    ] = (
+        f'attachment; '
+        f'filename="AegisLogix_Report_{report.id}.pdf"'
+    )
+
+    # -----------------------------------------------------
+    # PDF BUFFER
+    # -----------------------------------------------------
+
+    buffer = BytesIO()
+
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=18 * mm,
+        bottomMargin=18 * mm,
+    )
+
+    # -----------------------------------------------------
+    # STYLES
+    # -----------------------------------------------------
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "ReportTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=22,
+        leading=28,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#111827"),
+        spaceAfter=8,
+    )
+
+    subtitle_style = ParagraphStyle(
+        "ReportSubtitle",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=14,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#64748b"),
+        spaceAfter=20,
+    )
+
+    heading_style = ParagraphStyle(
+        "SectionHeading",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=13,
+        leading=17,
+        textColor=colors.HexColor("#111827"),
+        spaceBefore=12,
+        spaceAfter=8,
+    )
+
+    body_style = ParagraphStyle(
+        "BodyText",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=16,
+        textColor=colors.HexColor("#334155"),
+    )
+
+    small_style = ParagraphStyle(
+        "SmallText",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=13,
+        textColor=colors.HexColor("#64748b"),
+    )
+
+    # -----------------------------------------------------
+    # PDF CONTENT
+    # -----------------------------------------------------
+
+    story = []
+
+    # Header
+    story.append(
+        Paragraph(
+            "AEGISLOGIX",
+            title_style
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "SECURITY AUDIT REPORT",
+            subtitle_style
+        )
+    )
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=1,
+            color=colors.HexColor("#cbd5e1"),
+            spaceAfter=18
+        )
+    )
+
+    # -----------------------------------------------------
+    # REPORT DETAILS
+    # -----------------------------------------------------
+
+    story.append(
+        Paragraph(
+            "Report Information",
+            heading_style
+        )
+    )
+
+    report_data = [
+        [
+            Paragraph(
+                "<b>Report ID</b>",
+                body_style
+            ),
+            Paragraph(
+                f"#{report.id}",
+                body_style
+            ),
+        ],
+        [
+            Paragraph(
+                "<b>Report Name</b>",
+                body_style
+            ),
+            Paragraph(
+                str(report.report_name),
+                body_style
+            ),
+        ],
+        [
+            Paragraph(
+                "<b>Generated</b>",
+                body_style
+            ),
+            Paragraph(
+                report.created_at.strftime(
+                    "%d %b %Y, %I:%M %p"
+                ),
+                body_style
+            ),
+        ],
+        [
+            Paragraph(
+                "<b>Status</b>",
+                body_style
+            ),
+            Paragraph(
+                "Generated",
+                body_style
+            ),
+        ],
+        [
+            Paragraph(
+                "<b>Platform</b>",
+                body_style
+            ),
+            Paragraph(
+                "AegisLogix Security Audit Platform",
+                body_style
+            ),
+        ],
+        [
+            Paragraph(
+                "<b>Analysis Type</b>",
+                body_style
+            ),
+            Paragraph(
+                "Automated Log Analysis & Threat Detection",
+                body_style
+            ),
+        ],
+    ]
+
+    report_table = Table(
+        report_data,
+        colWidths=[
+            45 * mm,
+            125 * mm
+        ]
+    )
+
+    report_table.setStyle(
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (0, -1),
+                colors.HexColor("#f1f5f9")
+            ),
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.7,
+                colors.HexColor("#cbd5e1")
+            ),
+            (
+                "INNERGRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#e2e8f0")
+            ),
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "TOP"
+            ),
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                10
+            ),
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                10
+            ),
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                9
+            ),
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                9
+            ),
+        ])
+    )
+
+    story.append(report_table)
+
+    # -----------------------------------------------------
+    # SECURITY ANALYSIS
+    # -----------------------------------------------------
+
+    story.append(
+        Paragraph(
+            "Security Analysis",
+            heading_style
+        )
+    )
+
+    description = str(
+        report.description
+    ).replace(
+        "&",
+        "&amp;"
+    ).replace(
+        "<",
+        "&lt;"
+    ).replace(
+        ">",
+        "&gt;"
+    )
+
+    story.append(
+        Paragraph(
+            description,
+            body_style
+        )
+    )
+
+    story.append(
+        Spacer(
+            1,
+            20
+        )
+    )
+
+    # -----------------------------------------------------
+    # FOOTER
+    # -----------------------------------------------------
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=0.7,
+            color=colors.HexColor("#cbd5e1"),
+            spaceBefore=10,
+            spaceAfter=10
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "Generated by AegisLogix Security Audit Platform",
+            small_style
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "Automated Log Analysis & Threat Detection",
+            small_style
+        )
+    )
+
+    # -----------------------------------------------------
+    # BUILD PDF
+    # -----------------------------------------------------
+
+    document.build(story)
+
+    pdf = buffer.getvalue()
+
+    buffer.close()
+
+    response.write(pdf)
+
+    return response
 
 
 # =========================================================
